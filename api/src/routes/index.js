@@ -3,11 +3,12 @@ const fs = require("fs");
 const path = require("path");
 
 const router = express.Router();
+const endpointsPath = path.join(__dirname, "endpoints");
 
-fs.readdirSync(__dirname)
-    .filter(file => file !== "index.js" && file.endsWith(".js")) 
+fs.readdirSync(endpointsPath)
+    .filter(file => file.endsWith(".js"))
     .forEach(file => {
-        const route = require(path.join(__dirname, file));
+        const route = require(path.join(endpointsPath, file));
         const routeName = `/${file.replace(".js", "")}`;
         router.use(routeName, route);
     });
