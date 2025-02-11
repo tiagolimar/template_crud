@@ -1,27 +1,25 @@
 const { prisma } = require('../src/prismaClient');
+const fs = require("fs");
+const path = require("path");
 
 async function main() {
-    // Exemplo: Criando usuários falsos
-    const users = await prisma.user.createMany({
-        data: [
-            { name: "Alice", email: "alice@example.com" },
-            { name: "Bob", email: "bob@example.com" },
-            { name: "Charlie", email: "charlie@example.com" },
-        ],
-    });
+    const folderPath = path.join(__dirname, "seeds");
+    const files = fs.readdirSync(folderPath).filter(file => file.endsWith(".js"));
 
-    console.log(`Inseridos ${users.count} usuários!`);
-    
-    // Exemplo: Criando produtos falsos
-    const products = await prisma.product.createMany({
-        data: [
-            { name: "Produto A", price: 10.0 },
-            { name: "Produto B", price: 20.0 },
-            { name: "Produto C", price: 30.0 },
-        ],
-    });
+    for (const file of files) {
+        const data = require(path.join(folderPath, file));
+        const fileName = file.replace(".js", "");
 
-    console.log(`Inseridos ${products.count} produtos!`);
+        const entityDB = prisma[fileName];
+
+        if (!entityDB) {
+            throw new Error(`Entidade ${fileName} não encontrada!`);
+        }
+
+        const entity = await entityDB.createMany({ data });
+
+        console.log(`Inseridos ${entity.count} ${file}!`);
+    }
 }
 
 main()
